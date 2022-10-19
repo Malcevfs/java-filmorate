@@ -23,7 +23,9 @@ public class ValidationTests {
                 () -> Assertions.assertTrue(errorMessage(user, "empty data in Login")),
                 () -> user.setEmail(""),
                 () -> Assertions.assertTrue(errorMessage(user, "empty data in Email")),
-                () -> Assertions.assertTrue(errorMessage(user, "birthday can`t be future"))
+                () -> Assertions.assertTrue(errorMessage(user, "birthday can`t be future")),
+                () -> user.setLogin("wrong login"),
+                () -> Assertions.assertTrue(errorMessage(user, "wrong symbols in login"))
         );
     }
 
@@ -44,7 +46,7 @@ public class ValidationTests {
         FilmController filmController = new FilmController();
         Film film = new Film("name", "Description", LocalDate.of(1800, 12, 01), 200);
 
-        filmController.addFilm(film);
+        filmController.add(film);
     }
 
 }
