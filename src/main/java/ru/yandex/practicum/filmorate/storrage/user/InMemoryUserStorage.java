@@ -1,29 +1,25 @@
-package ru.yandex.practicum.filmorate.controller;
+package ru.yandex.practicum.filmorate.storrage.user;
 
+import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
-import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.springframework.web.bind.annotation.*;
-
-import javax.validation.Valid;
-import java.time.LocalDate;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
-
-@RestController
-@RequestMapping("/users")
-public class UserController {
+@Component
+public class InMemoryUserStorage implements UserStorage {
     protected int id = 0;
-    private static final Logger log = LoggerFactory.getLogger(UserController.class);
+    private static final Logger log = LoggerFactory.getLogger(InMemoryUserStorage.class);
     private final Map<Integer, User> usersStorage = new HashMap<>();
 
+    public Map<Integer, User> getUsersStorage() {
+        return usersStorage;
+    }
 
-    @PostMapping
-    public User addNewUser(@Valid @RequestBody User user) {
+    public User add(User user) {
         for (User users : usersStorage.values()) {
             if (users.getEmail().equals(user.getEmail())) {
                 throw new ValidationException("Пользователь с таким Email уже зарегистрирован");
@@ -33,7 +29,7 @@ public class UserController {
             user.setName(user.getLogin());
         }
 
-        createId();
+        id++;
         user.setId(id);
 
         usersStorage.put(user.getId(), user);
@@ -41,8 +37,7 @@ public class UserController {
         return user;
     }
 
-    @PutMapping
-    public User refreshUserData(@Valid @RequestBody User user) {
+    public User refresh(User user) {
         for (User users : usersStorage.values()) {
             if (users.getId() != user.getId()) {
                 throw new ValidationException("Пользователя с таким id не существует в базе");
@@ -54,13 +49,8 @@ public class UserController {
         return user;
     }
 
-    @GetMapping
-    public Collection<User> getAllUsers() {
+    public Collection<User> getAll() {
         return usersStorage.values();
     }
 
-    public int createId() {
-        return id++;
-    }
 }
-

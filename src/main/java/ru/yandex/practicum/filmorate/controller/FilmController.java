@@ -19,9 +19,9 @@ public class FilmController {
     private final HashMap<Integer, Film> filmsStorage = new HashMap<>();
 
     @PostMapping
-    public Film add(@Valid @RequestBody Film film) {
+    public Film addFilm(@Valid @RequestBody Film film) {
 
-        id++;
+        createId();
         film.setId(id);
 
         if (film.getReleaseDate().isBefore(LocalDate.of(1895, 12, 28))) {
@@ -34,7 +34,7 @@ public class FilmController {
     }
 
     @PutMapping
-    public Film refresh(@Valid @RequestBody Film film) {
+    public Film refreshFilm(@Valid @RequestBody Film film) {
         for (Film films : filmsStorage.values()) {
             if (films.getId() != film.getId()) {
                 throw new ValidationException("Фильма с таким id не существует в базе");
@@ -51,9 +51,12 @@ public class FilmController {
     }
 
     @GetMapping
-    public Collection<Film> getAll() {
+    public Collection<Film> getAllFilms() {
         return filmsStorage.values();
     }
-}
 
+    public int createId() {
+        return id++;
+    }
+}
 
