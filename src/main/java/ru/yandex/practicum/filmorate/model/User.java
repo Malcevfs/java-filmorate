@@ -6,7 +6,9 @@ import lombok.NonNull;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Past;
+import javax.validation.constraints.Pattern;
 import java.time.LocalDate;
+import java.util.Set;
 
 @Data
 public class User {
@@ -22,13 +24,17 @@ public class User {
     @NotBlank(message = "empty data in Email")
     @NonNull
     @Email(message = "invalid Email")
+    @Pattern(regexp = "^\\S*$")
     protected String email;
     @NotBlank(message = "empty data in Login")
     @NonNull
+    @Pattern(regexp = "^\\S*$", message = "wrong symbols in login")
     protected String login;
     protected String name;
     @Past(message = "birthday can`t be future")
     protected LocalDate birthday;
+
+    protected Set<Long> friends;
 
 }
 
