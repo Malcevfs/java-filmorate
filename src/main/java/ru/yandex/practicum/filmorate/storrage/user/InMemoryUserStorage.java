@@ -1,6 +1,7 @@
 package ru.yandex.practicum.filmorate.storrage.user;
 
 import org.springframework.stereotype.Component;
+import ru.yandex.practicum.filmorate.exception.StorageException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
 import org.slf4j.Logger;
@@ -9,8 +10,10 @@ import org.slf4j.LoggerFactory;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+
 @Component
 public class InMemoryUserStorage implements UserStorage {
+
     protected int id = 0;
     private static final Logger log = LoggerFactory.getLogger(InMemoryUserStorage.class);
     private final Map<Integer, User> usersStorage = new HashMap<>();
@@ -40,7 +43,7 @@ public class InMemoryUserStorage implements UserStorage {
     public User refresh(User user) {
         for (User users : usersStorage.values()) {
             if (users.getId() != user.getId()) {
-                throw new ValidationException("Пользователя с таким id не существует в базе");
+                throw new StorageException("Пользователя с таким id не существует в базе");
             }
         }
 
@@ -50,7 +53,18 @@ public class InMemoryUserStorage implements UserStorage {
     }
 
     public Collection<User> getAll() {
+        if (usersStorage.isEmpty()) {
+            throw new StorageException("Нет пользователей в хранилище");
+        }
         return usersStorage.values();
+    }
+
+    @Override
+    public User getUserById(int id) {
+        if (usersStorage.get(id) == null) {
+            throw new StorageException("Пользователя с таким Id нет в хранилище");
+        }
+        return usersStorage.get(id);
     }
 
 }

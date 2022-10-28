@@ -14,10 +14,9 @@ import java.util.HashMap;
 @Component
 public interface FilmStorage {
 
-    public Film add(Film film);
-
+    Film add(Film film);
     Film refresh(Film film);
-
+    Film getFilmById(int id);
     Collection<Film> getAll();
 
 }
