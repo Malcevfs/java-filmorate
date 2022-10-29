@@ -38,6 +38,7 @@ public class FilmService {
     public List<Film> getTopFilms(int count) {
         List<Film> filmsList = new ArrayList<>((filmStorage.getFilmsStorage().values()));
 
-        return filmsList.stream().sorted(Comparator.comparingInt(film -> film.getLikes().size() * -1)).limit(count).collect(Collectors.toList());
+        return filmsList.stream().sorted(Comparator.comparingInt(film -> film.getLikes().size() * -1))
+                .limit(count).collect(Collectors.toList());
     }
 }
