@@ -11,7 +11,6 @@ public class TestValidator {
 
     private TestValidator() {
     }
-
     public static <T> boolean errorMessage(T dto, @NotNull String message) {
         Set<ConstraintViolation<T>> errors = VALIDATOR.validate(dto);
         return errors.stream().map(ConstraintViolation::getMessage).anyMatch(message::equals);
