@@ -1,3 +1,4 @@
+
 package ru.yandex.practicum.filmorate.tests;
 
 import org.junit.Test;
@@ -48,5 +49,4 @@ public class ValidationTests {
 
         filmController.add(film);
     }
-
 }
