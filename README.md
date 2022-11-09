@@ -2,7 +2,7 @@
 Template repository for Filmorate project.
 ![This is an image](/src/main/resources/diagram.png)
 
-Запрос для вывода значений таблицы film
+**Запрос для вывода значений таблицы film:**
 
 SELECT \
 fl.film_id,\
@@ -17,12 +17,12 @@ FROM film as fl\
 INNER JOIN film_genre as f ON fl.film_id=f.film_id\
 INNER JOIN film_rate as r ON fl.film_id=r.film_id;
 
-Запрос для вывода значений таблицы user
+**Запрос для вывода значений таблицы user:**
 
 SELECT *\
 FROM user;
 
-Запрос для вывода лайков
+**Запрос для вывода лайков:**
 
 SELECT\
 u.user_id\
@@ -32,7 +32,7 @@ FROM user as u\
 INNER JOIN likes as l ON u.user_id=l.user_id\
 INNER JOIN film as f ON l.film_id=f.film_id;
 
-Запрос для вывода списка друзей пользователя
+**Запрос для вывода списка друзей пользователя:**
 
 SELECT\
 u.name as user_name\
