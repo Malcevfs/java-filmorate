@@ -1,58 +1,61 @@
 package ru.yandex.practicum.filmorate.controller;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import ru.yandex.practicum.filmorate.exception.ValidationException;
+import org.springframework.beans.factory.annotation.Autowired;
 import ru.yandex.practicum.filmorate.model.Film;
 import org.springframework.web.bind.annotation.*;
+import ru.yandex.practicum.filmorate.service.FilmService;
+import ru.yandex.practicum.filmorate.storrage.film.FilmStorage;
 
 import javax.validation.Valid;
-import java.time.LocalDate;
 import java.util.Collection;
-import java.util.HashMap;
+import java.util.List;
 
 @RestController
 @RequestMapping("/films")
 public class FilmController {
-    protected int id = 0;
-    private static final Logger log = LoggerFactory.getLogger(FilmController.class);
-    private final HashMap<Integer, Film> filmsStorage = new HashMap<>();
+    private final FilmStorage filmStorage;
+    private final FilmService filmService;
+
+    @Autowired
+    public FilmController(FilmStorage filmStorage, FilmService filmService) {
+        this.filmStorage = filmStorage;
+        this.filmService = filmService;
+    }
 
     @PostMapping
     public Film add(@Valid @RequestBody Film film) {
-
-        id++;
-        film.setId(id);
-
-        if (film.getReleaseDate().isBefore(LocalDate.of(1895, 12, 28))) {
-            throw new ValidationException("Дата релиза фильма не может быть раньше выхода первого фильма");
-        }
-
-        filmsStorage.put(film.getId(), film);
-        log.info("Фильм с id" + film.getId() + " добавлен в хранилище");
-        return film;
+        return filmStorage.add(film);
     }
 
     @PutMapping
     public Film refresh(@Valid @RequestBody Film film) {
-        for (Film films : filmsStorage.values()) {
-            if (films.getId() != film.getId()) {
-                throw new ValidationException("Фильма с таким id не существует в базе");
-            }
-        }
-        if (film.getReleaseDate().isBefore(LocalDate.of(1895, 12, 28))) {
-            throw new ValidationException("Дата релиза фильма не может быть раньше выхода первого фильма");
-
-        }
-
-        filmsStorage.put(film.getId(), film);
-        log.info("Фильм изменен в хранилище c id " + film.getId());
-        return film;
+        return filmStorage.refresh(film);
     }
 
     @GetMapping
     public Collection<Film> getAll() {
-        return filmsStorage.values();
+        return filmStorage.getAll();
+    }
+
+    @GetMapping("/{id}")
+    public Film getFilmById(@PathVariable("id") Integer id) {
+        return filmStorage.getFilmById(id);
+    }
+
+    @PutMapping("/{id}/like/{userId}")
+    public void addLike(@PathVariable("id") Integer id, @PathVariable("userId") Integer userId) {
+        filmService.addLike(id, userId);
+    }
+
+    @DeleteMapping("/{id}/like/{userId}")
+    public void deleteLike(@PathVariable("id") Integer id, @PathVariable("userId") Integer userId) {
+        filmService.deleteLike(id, userId);
+    }
+
+    @GetMapping("/popular")
+    public List<Film> getTopFilm(
+            @RequestParam(value = "count", defaultValue = "10", required = false) Integer count) {
+        return filmService.getTopFilms(count);
     }
 }
 

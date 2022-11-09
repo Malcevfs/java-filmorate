@@ -5,6 +5,9 @@ import lombok.NonNull;
 
 import javax.validation.constraints.*;
 import java.time.LocalDate;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.Comparator;
 
 @Data
 public class Film {
@@ -23,4 +26,6 @@ public class Film {
     protected LocalDate releaseDate;
     @Positive(message = "duration is negative")
     protected int duration;
+    protected Set<Long> likes = new HashSet<>();
+
 }
