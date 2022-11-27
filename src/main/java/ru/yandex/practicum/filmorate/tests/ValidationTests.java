@@ -30,23 +30,23 @@ public class ValidationTests {
         );
     }
 
-    @Test
-    public void createFilmTest() {
-        Film film = new Film("", "Description", LocalDate.of(1950, 12, 01), -200);
-        film.setDescription("Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation");
+//    @Test
+//    public void createFilmTest() {
+//        Film film = new Film("", "Description", LocalDate.of(1950, 12, 01), -200);
+//        film.setDescription("Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation");
+//
+//        Assertions.assertAll(
+//                () -> Assertions.assertTrue(errorMessage(film, "empty name")),
+//                () -> Assertions.assertTrue(errorMessage(film, "max description size is 200 chars")),
+//                () -> Assertions.assertTrue(errorMessage(film, "duration is negative"))
+//        );
+//    }
 
-        Assertions.assertAll(
-                () -> Assertions.assertTrue(errorMessage(film, "empty name")),
-                () -> Assertions.assertTrue(errorMessage(film, "max description size is 200 chars")),
-                () -> Assertions.assertTrue(errorMessage(film, "duration is negative"))
-        );
-    }
-
-    @Test(expected = ValidationException.class)
-    public void invalidReleaseDateTest() {
-        InMemoryFilmStorage filmController = new InMemoryFilmStorage();
-        Film film = new Film("name", "Description", LocalDate.of(1800, 12, 01), 200);
-
-        filmController.add(film);
-    }
+//    @Test(expected = ValidationException.class)
+//    public void invalidReleaseDateTest() {
+//        InMemoryFilmStorage filmController = new InMemoryFilmStorage();
+//        Film film = new Film("name", "Description", LocalDate.of(1800, 12, 01), 200);
+//
+//        filmController.add(film);
+//    }
 }

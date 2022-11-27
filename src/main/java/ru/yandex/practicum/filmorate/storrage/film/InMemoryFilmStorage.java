@@ -8,7 +8,9 @@ import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 
 import java.time.LocalDate;
-import java.util.*;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
 
 @Component
 public class InMemoryFilmStorage implements FilmStorage {
@@ -48,17 +50,18 @@ public class InMemoryFilmStorage implements FilmStorage {
     }
 
     @Override
-    public Film getFilmById(int id) {
+    public Collection<Film> getFilmById(int id) {
         if (filmsStorage.get(id) == null) {
             throw new StorageException("Фильма с таким Id нет в хранилище");
         }
-        return filmsStorage.get(id);
+        return (Collection<Film>) filmsStorage.get(id);
     }
 
     @Override
-    public Collection<Film> getAll() {
-        return filmsStorage.values();
+    public List<Film> getAll() {
+        return null;
     }
+
     public HashMap<Integer, Film> getFilmsStorage() {
         return filmsStorage;
     }
