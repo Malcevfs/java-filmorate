@@ -48,33 +48,7 @@ public class UserService {
         }
     }
 
-    public boolean checkFriendRequest(int userId, int friendId) {
 
-        if (userId < 0 || friendId < 0) {
-            throw new StorageException("Значение Id не может быть отрицательным");
-        }
-
-        boolean request = false;
-        String getUserRequest = String.format(" select REQUEST from FRIENDS_REQUEST " +
-                "where USER_ID =%d and FRIEND_ID =%d", userId, friendId);
-        List<Boolean> userRequest = jdbcTemplate.query(getUserRequest, (rs, rowNum) -> getFriendRequest(rs));
-
-        String getFriendRequest = String.format(" select REQUEST from FRIENDS_REQUEST " +
-                "where USER_ID =%d and FRIEND_ID =%d", friendId, userId);
-        List<Boolean> friendRequest = jdbcTemplate.query(getFriendRequest, (rs, rowNum) -> getFriendRequest(rs));
-        if (friendRequest.isEmpty()) {
-           return false;
-
-        } else if (userRequest.get(0) == friendRequest.get(0)) {
-            request = true;
-        }
-        return request;
-    }
-
-    private Boolean getFriendRequest(ResultSet rs) throws SQLException {
-
-        return rs.getBoolean("request");
-    }
 
     public void deleteFriend(int id, int friendId) {
         if (userDbStorage.getUserById(id) == null || userDbStorage.getUserById(friendId) == null) {
@@ -131,6 +105,33 @@ public class UserService {
             friends.add(userDbStorage.getUserById(newId));
         }
         return friends;
+    }
+    public boolean checkFriendRequest(int userId, int friendId) {
+
+        if (userId < 0 || friendId < 0) {
+            throw new StorageException("Значение Id не может быть отрицательным");
+        }
+
+        boolean request = false;
+        String getUserRequest = String.format(" select REQUEST from FRIENDS_REQUEST " +
+                "where USER_ID =%d and FRIEND_ID =%d", userId, friendId);
+        List<Boolean> userRequest = jdbcTemplate.query(getUserRequest, (rs, rowNum) -> getFriendRequest(rs));
+
+        String getFriendRequest = String.format(" select REQUEST from FRIENDS_REQUEST " +
+                "where USER_ID =%d and FRIEND_ID =%d", friendId, userId);
+        List<Boolean> friendRequest = jdbcTemplate.query(getFriendRequest, (rs, rowNum) -> getFriendRequest(rs));
+        if (friendRequest.isEmpty()) {
+            return false;
+
+        } else if (userRequest.get(0) == friendRequest.get(0)) {
+            request = true;
+        }
+        return request;
+    }
+
+    private Boolean getFriendRequest(ResultSet rs) throws SQLException {
+
+        return rs.getBoolean("request");
     }
 }
 

@@ -22,7 +22,7 @@ import java.util.List;
 public class FilmDbStorage implements FilmStorage {
     private final JdbcTemplate jdbcTemplate;
 
-    private final Logger log = LoggerFactory.getLogger(InMemoryFilmStorage.class);
+    private final Logger log = LoggerFactory.getLogger(FilmDbStorage.class);
 
     public FilmDbStorage(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
