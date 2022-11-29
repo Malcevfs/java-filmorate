@@ -30,7 +30,10 @@ public class UserDbStorage implements UserStorage {
 
     @Override
     public User add(User user) {
-        for (User users : getAll()) {
+        String sqlQuery = "select * from USERS";
+
+        List<User> user1 = jdbcTemplate.query(sqlQuery, (rs, rowNum) -> makeUser(rs));
+        for (User users : user1) {
             if (users.getEmail().equals(user.getEmail())) {
                 throw new ValidationException("Пользователь с таким Email уже зарегистрирован");
             }
@@ -39,20 +42,25 @@ public class UserDbStorage implements UserStorage {
             user.setName(user.getLogin());
         }
 
-        id++;
-
-        String sql = "INSERT INTO users (email,login,name,birthday) VALUES ('" + user.getEmail() + "'" + "," + "'" + user.getLogin() + "'" + "," + "'" + user.getName() + "'" + "," + "'" + user.getBirthday() + "'" + ")";
-
+        String sql = "INSERT INTO users (email,login,name,birthday) VALUES ('" + user.getEmail() + "'" + "," + "'" +
+                user.getLogin() + "'" + "," + "'" + user.getName() + "'" + "," + "'" + user.getBirthday() + "'" + ")";
         jdbcTemplate.update(sql);
 
-        log.info("Пользователь с id" + user.getId() + " добавлен в хранилище");
+        String sql1 = "select * from users where login='" + user.getLogin() + "'" +
+                " and email ='" + user.getEmail() + "'";
+        List<User> user2 = jdbcTemplate.query(sql1, (rs, rowNum) -> makeUser(rs));
+
+        user.setId(user2.get(0).getId());
+
+
+        log.info("Пользователь с id " + user.getId() + ". Д обавлен в хранилище");
         return user;
     }
 
     @Override
     public User refresh(User user) {
 
-        if (!checkUserId(user.getId())) {
+        if (checkUserId(user.getId())) {
             throw new StorageException("Пользователя с таким id не существует в базе");
         }
 
@@ -64,7 +72,7 @@ public class UserDbStorage implements UserStorage {
                 "where user_id=" + user.getId();
         jdbcTemplate.update(sql);
 
-        log.info("Пользователь с id" + user.getId() + " изменены данные в хранилище");
+        log.info("Пользователь с id " + user.getId() + ". Изменены данные в хранилище");
 
         return user;
     }
@@ -75,23 +83,23 @@ public class UserDbStorage implements UserStorage {
 
         List<User> user1 = new ArrayList<>();
         String sqlQuery = " select * from USERS";
-        /** Не получалось получить корректные значения лайков для всех юзеров. Путаются значения в листах. Решил пока сделать
-         через метод получения фильма по id **/
+
+        /* Не получалось получить корректные значения лайков для всех юзеров. Путаются значения в листах.
+            Решил пока сделать  через метод получения юзера по id **/
 
         List<User> user = jdbcTemplate.query(sqlQuery, (rs, rowNum) -> makeUser(rs));
         if (user.isEmpty()) {
             throw new StorageException("Нет пользователей в хранилище");
         }
         for (int i = 1; i <= user.size(); i++) {
-            user1.addAll(getUserById(i));
+            user1.add(getUserById(i));
         }
-
         return user1;
     }
 
     @Override
-    public List<User> getUserById(int id) {
-        if (!checkUserId(id)) {
+    public User getUserById(int id) {
+        if (checkUserId(id)) {
             throw new StorageException("Пользователя с таким Id нет в хранилище");
         }
 
@@ -102,11 +110,12 @@ public class UserDbStorage implements UserStorage {
         String sql1 = "select * from FRIENDS_REQUEST " +
                 "WHERE USER_ID =" + id;
         List<Integer> friendId = jdbcTemplate.query(sql1, (rs, rowNum) -> getFriends(rs));
-        ;
+
         for (Integer friend : friendId) {
             user.get(0).getFriends().add(Long.valueOf(friend));
         }
-        return user;
+
+        return user.get(0);
     }
 
     private User makeUser(ResultSet rs) throws SQLException {
@@ -123,19 +132,17 @@ public class UserDbStorage implements UserStorage {
     }
 
     private int getFriends(ResultSet rs) throws SQLException {
-        int friendIdd = rs.getInt("friend_id");
 
-        return friendIdd;
+        return rs.getInt("friend_id");
     }
 
     public boolean checkUserId(int id) {
         boolean check = false;
-        String sql = "select * from USERS " +
-                "where USER_ID =" + id;
+        String sql = String.format("select * from USERS where USER_ID =%d", id);
         List<User> user = jdbcTemplate.query(sql, (rs, rowNum) -> makeUser(rs));
         if (!user.isEmpty()) {
             check = true;
         }
-        return check;
+        return !check;
     }
 }

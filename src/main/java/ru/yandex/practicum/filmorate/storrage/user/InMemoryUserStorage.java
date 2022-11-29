@@ -60,11 +60,11 @@ public class InMemoryUserStorage implements UserStorage {
     }
 
     @Override
-    public Collection<User> getUserById(int id) {
+    public User getUserById(int id) {
         if (usersStorage.get(id) == null) {
             throw new StorageException("Пользователя с таким Id нет в хранилище");
         }
-        return (Collection<User>) usersStorage.get(id);
+        return (User) usersStorage.get(id);
     }
 
 }

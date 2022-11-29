@@ -15,7 +15,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 @Component
@@ -23,7 +22,6 @@ import java.util.List;
 public class FilmDbStorage implements FilmStorage {
     private final JdbcTemplate jdbcTemplate;
 
-    protected int id = 0;
     private final Logger log = LoggerFactory.getLogger(InMemoryFilmStorage.class);
 
     public FilmDbStorage(JdbcTemplate jdbcTemplate) {
@@ -37,40 +35,83 @@ public class FilmDbStorage implements FilmStorage {
             throw new ValidationException("Дата релиза фильма не может быть раньше выхода первого фильма");
         }
 
-        System.out.println(film);
-        String sql = "INSERT INTO films (name,description,release_date,duration) VALUES ('" + film.getName() + "'" + "," + "'" + film.getDescription() + "'" + "," + "'" + film.getReleaseDate() + "'" + "," + "'" + film.getDuration() + "'" + ")";
+        String sql = "INSERT INTO films (name,description,release_date,duration,rate, mpa_id) VALUES " +
+                "('" + film.getName() + "'" + "," + "'" + film.getDescription() + "'" + "," + "'" +
+                film.getReleaseDate() + "'" + "," + "'" + film.getDuration() + "'" + "," + "'" +
+                film.getRate() + "'" + "," + "'" + film.getMpa().getId() + "')";
 
         jdbcTemplate.update(sql);
-        String sql2 = "select * from genre " +
-                "where genre_id=" + film.getMpa().getId();
-        List<String> mpa = jdbcTemplate.query(sql2, (rs, rowNum) -> getGenre(rs));
-        film.getMpa().setMpa(mpa.get(0));
-        log.info("Фильм с id" + film.getId() + " добавлен в хранилище");
+
+        String sql1 = "select * from mpa " +
+                "where mpa_id=" + film.getMpa().getId();
+        List<String> mpa = jdbcTemplate.query(sql1, (rs, rowNum) -> getMpa(rs));
+
+        String sql2 = "select FILM_ID, F.NAME, DESCRIPTION, RELEASE_DATE, DURATION, RATE, m.MPA_ID, M.NAME as mpa_name " +
+                "from FILMS F\n" +
+                "join MPA M on F.MPA_ID = M.MPA_ID\n" +
+                "and F.NAME= '" + film.getName() + "'";
+        List<Film> film2 = jdbcTemplate.query(sql2, (rs, rowNum) -> makeFilm(rs));
+
+        film.setId(film2.get(0).getId());
+
+        String sql3 = "select *  from FILM_GENRE\n" +
+                "join GENRE G2 on G2.GENRE_ID = FILM_GENRE.GENRE_ID\n" +
+                "and FILM_ID=" + film.getId();
+        List<Genre> genres = jdbcTemplate.query(sql3, (rs, rowNum) -> getGenreForSet(rs));
+
+        if (genres.isEmpty()) {
+            for (Genre genre : film.getGenres()) {
+                String sql4 = "INSERT INTO film_genre (film_id, genre_id)" +
+                        " VALUES ('" + film.getId() + "'" + "," + "'" + genre.getId() + "')";
+                jdbcTemplate.update(sql4);
+            }
+        }
+
+        film.getMpa().setName(mpa.get(0));
+        log.info("Фильм с id " + film.getId() + " добавлен в хранилище");
         return film;
     }
 
     @Override
     public Film refresh(Film film) {
-        if (!checkFilmId(film.getId())) {
-            throw new StorageException("Пользователя с таким id не существует в базе");
+        if (checkFilmId(film.getId())) {
+            throw new StorageException("Фильма с таким id не существует в базе");
         }
 
         String sql = "update films set " +
                 "name ='" + film.getName() + "'" + "," +
                 "description ='" + film.getDescription() + "'" + "," +
                 "release_date ='" + film.getReleaseDate() + "'" + "," +
-                "duration ='" + film.getDuration() + "'" +
+                "duration ='" + film.getDuration() + "'" + "," +
+                "rate ='" + film.getRate() + "'" + "," +
+                "mpa_id ='" + film.getMpa().getId() + "'" +
                 "where film_id=" + film.getId();
+
         jdbcTemplate.update(sql);
-        return film;
+
+        String sql1 = "DELETE FROM film_genre where FILM_ID =" + film.getId();
+        jdbcTemplate.update(sql1);
+
+        for (Genre genre : film.getGenres()) {
+            String sql2 = "INSERT INTO film_genre (film_id, genre_id) " +
+                    "VALUES ('" + film.getId() + "'" + "," + "'" + genre.getId() + "')";
+
+            jdbcTemplate.update(sql2);
+        }
+        log.info("Фильм " + film.getName() + " с id " + film.getId() + " обновлен в хранилище");
+        return getFilmById(film.getId());
     }
 
     @Override
-    public Collection<Film> getFilmById(int id) {
+    public Film getFilmById(int id) {
+        if (checkFilmId(id)) {
+            throw new StorageException("Фильма с таким id не существует в базе");
+        }
 
-        String sql = "select FILM_ID, NAME, DESCRIPTION, RELEASE_DATE, DURATION, m.MPA_ID, mpa from FILMS\n" +
-                "join MPA M on FILMS.MPA_ID = M.MPA_ID\n" +
-                "and FILM_ID = " + id;
+        String sql = "select FILM_ID, F.NAME, DESCRIPTION, RELEASE_DATE, DURATION, RATE, m.MPA_ID, M.NAME as mpa_name" +
+                " from FILMS F\n" +
+                "join MPA M on F.MPA_ID = M.MPA_ID\n" +
+                "and F.FILM_ID = " + id;
         List<Film> film = jdbcTemplate.query(sql, (rs, rowNum) -> makeFilm(rs));
 
         String sql1 = "select * from LIKES where FILM_ID =" + id;
@@ -81,23 +122,22 @@ public class FilmDbStorage implements FilmStorage {
 
         String sql2 = "select *  from FILM_GENRE\n" +
                 "join GENRE G2 on G2.GENRE_ID = FILM_GENRE.GENRE_ID\n" +
-                "and FILM_ID=" + id;
+                "and FILM_ID=" + id +
+                " ORDER BY GENRE_ID";
         List<Genre> genres = jdbcTemplate.query(sql2, (rs, rowNum) -> getGenreForSet(rs));
         for (Genre genre : genres) {
-            film.get(0).getGenre().add(genre);
+            film.get(0).getGenres().add(genre);
         }
-
-
-        return film;
+        log.info("Выполнен запрос поиска фильма " + film.get(0).getName() + " с id " + id);
+        return film.get(0);
     }
 
     @Override
     public List<Film> getAll() {
         List<Film> film1 = new ArrayList<>();
-        String sql = "select FG.FILM_ID, NAME, DESCRIPTION, RELEASE_DATE, DURATION, GENRE, G2.GENRE_ID, M.MPA_id, MPA from FILMS\n" +
-                "join FILM_GENRE FG on FILMS.FILM_ID = FG.FILM_ID\n" +
-                "join MPA M on FILMS.MPA_ID = M.MPA_ID\n" +
-                "join GENRE G2 on G2.GENRE_ID = FG.GENRE_ID";
+        String sql = "select F.FILM_ID, F.NAME, F.DESCRIPTION, F.RELEASE_DATE, F.DURATION, F.RATE, M.MPA_id, M.NAME as mpa_name " +
+                " from FILMS F\n" +
+                "join MPA M on F.MPA_ID = M.MPA_ID\n";
         List<Film> film = jdbcTemplate.query(sql, (rs, rowNum) -> makeFilm(rs));
 
         /** Не получалось получить корректные значения лайков для всех фильмов. Путаются значения в листах. Решил пока сделать
@@ -115,57 +155,57 @@ public class FilmDbStorage implements FilmStorage {
 //        }
 
         for (int i = 1; i <= film.size(); i++) {
-            film1.addAll(getFilmById(i));
+            film1.add(getFilmById(i));
         }
+        log.info("Выполнен запрос списка всех фильмов");
         return film1;
     }
 
     private Film makeFilm(ResultSet rs) throws SQLException {
-        int mpaId = rs.getInt("mpa_id");
-        String mpaName = rs.getString("mpa");
         int id = rs.getInt("film_id");
+        int mpaId = rs.getInt("mpa_id");
+        String mpaName = rs.getString("mpa_name");
         String name = rs.getString("name");
         String description = rs.getString("description");
         LocalDate release_date = rs.getDate("release_date").toLocalDate();
         int duration = rs.getInt("duration");
+        long rate = rs.getLong("rate");
         Film film = new Film(name, description, release_date, duration);
         film.setId(id);
+        film.setRate(rate);
         Mpa mpa = new Mpa(mpaId, mpaName);
         film.setMpa(mpa);
-
         return film;
     }
 
-    private String getGenre(ResultSet rs) throws SQLException {
-        String genre = rs.getString("genre");
+    private String getMpa(ResultSet rs) throws SQLException {
 
-        return genre;
+        return rs.getString("name");
     }
 
     private Genre getGenreForSet(ResultSet rs) throws SQLException {
         int genreId = rs.getInt("genre_id");
         String genreName = rs.getString("genre");
-        Genre genre = new Genre(genreId, genreName);
 
-        return genre;
+        return new Genre(genreId, genreName);
     }
 
-
     private Integer getLikes(ResultSet rs) throws SQLException {
-        int like = rs.getInt("user_id");
 
-        return like;
+        return rs.getInt("user_id");
     }
 
     public boolean checkFilmId(int id) {
         boolean check = false;
-        String sql = "select * from FILMS " +
-                "where film_id =" + id;
+        String sql = "select FILM_ID, F.NAME, DESCRIPTION, RELEASE_DATE, DURATION, RATE, m.MPA_ID, M.NAME as mpa_name " +
+                "from FILMS F\n" +
+                "join MPA M on F.MPA_ID = M.MPA_ID\n" +
+                "and F.FILM_ID = " + id;
         List<Film> films = jdbcTemplate.query(sql, (rs, rowNum) -> makeFilm(rs));
         if (!films.isEmpty()) {
             check = true;
         }
-        return check;
+        return !check;
     }
 
 }

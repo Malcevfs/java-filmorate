@@ -27,7 +27,8 @@ public class Film {
     @Positive(message = "duration is negative")
     protected int duration;
     protected Set<Long> likes = new HashSet<>();
-    Set<Genre> genre = new HashSet<>();
+    Set<Genre> genres = new HashSet<>();
+    protected long rate;
     protected Mpa mpa;
 
 }

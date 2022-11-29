@@ -17,6 +17,20 @@ CREATE TABLE IF NOT EXISTS friends_request (
     FOREIGN KEY (friend_id) REFERENCES users (user_id) ON DELETE CASCADE
 );
 
+CREATE TABLE IF NOT EXISTS  genre (
+genre_id integer not null primary key auto_increment,
+genre varchar(25) not null,
+constraint GENRE_ID_PK primary key (genre_id)
+
+);
+
+CREATE TABLE IF NOT EXISTS  mpa (
+    mpa_id  integer not null primary key auto_increment,
+    name varchar(25) not null,
+     constraint MPA_ID_PK primary key (mpa_id)
+
+);
+
 CREATE TABLE IF NOT EXISTS films (
 
     film_id integer not null primary key auto_increment,
@@ -24,23 +38,12 @@ CREATE TABLE IF NOT EXISTS films (
     description varchar(255),
     release_date date,
     duration integer,
+    rate bigint,
     mpa_id integer,
     FOREIGN KEY (mpa_id) REFERENCES mpa (mpa_id) ON DELETE CASCADE,
     constraint FILMS_PK primary key (film_id)
 );
 
-CREATE TABLE IF NOT EXISTS  genre (
-    genre_id integer not null primary key auto_increment,
-    genre varchar(25) not null,
-    constraint GENRE_ID_PK primary key (genre_id)
-
-);
-CREATE TABLE IF NOT EXISTS  mpa (
-    mpa_id  integer not null primary key auto_increment,
-    mpa varchar(25) not null,
-    constraint MPA_ID_PK primary key (mpa_id)
-
-);
 
 CREATE TABLE IF NOT EXISTS  film_genre (
     genre_id integer not null,

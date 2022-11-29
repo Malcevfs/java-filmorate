@@ -5,8 +5,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.StorageException;
 import ru.yandex.practicum.filmorate.model.Mpa;
-import ru.yandex.practicum.filmorate.model.User;
-
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Collection;
@@ -28,25 +26,24 @@ public class MpaDbStorage implements MpaStorage {
     }
 
     @Override
-    public Collection<Mpa> getMpaById(Integer id) {
+    public Mpa getMpaById(Integer id) {
         if (!checkMpaId(id)) {
             throw new StorageException("Mpa с таким Id нет в хранилище");
         }
-        String sql = "select * from mpa where mpa_id =" + id;
-        return jdbcTemplate.query(sql, (rs, rowNum) -> makeMpa(rs));
+        String sql = String.format("select * from mpa where mpa_id =%d", id);
+        List<Mpa> mpa = jdbcTemplate.query(sql, (rs, rowNum) -> makeMpa(rs));
+        return mpa.get(0);
     }
 
     private Mpa makeMpa(ResultSet rs) throws SQLException {
         int mpaId = rs.getInt("mpa_id");
-        String mpaName = rs.getString("mpa");
-        Mpa mpa = new Mpa(mpaId, mpaName);
-        return mpa;
+        String mpaName = rs.getString("name");
+        return new Mpa(mpaId, mpaName);
     }
 
     public boolean checkMpaId(int id) {
         boolean check = false;
-        String sql = "select * from mpa " +
-                "where MPA_ID =" + id;
+        String sql = String.format("select * from mpa where MPA_ID =%d", id);
         List<Mpa> mpa = jdbcTemplate.query(sql, (rs, rowNum) -> makeMpa(rs));
         if (!mpa.isEmpty()) {
             check = true;

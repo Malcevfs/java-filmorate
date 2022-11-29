@@ -5,10 +5,10 @@ import lombok.Data;
 @Data
 public class Mpa {
     long id;
-    String mpa;
+    String name;
 
-    public Mpa(long id, String mpa) {
+    public Mpa(long id, String name) {
         this.id = id;
-        this.mpa = mpa;
+        this.name = name;
     }
 }

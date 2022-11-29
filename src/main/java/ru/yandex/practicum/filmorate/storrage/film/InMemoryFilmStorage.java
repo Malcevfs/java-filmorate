@@ -6,9 +6,7 @@ import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.StorageException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
-
 import java.time.LocalDate;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 
@@ -50,11 +48,11 @@ public class InMemoryFilmStorage implements FilmStorage {
     }
 
     @Override
-    public Collection<Film> getFilmById(int id) {
+    public Film getFilmById(int id) {
         if (filmsStorage.get(id) == null) {
             throw new StorageException("Фильма с таким Id нет в хранилище");
         }
-        return (Collection<Film>) filmsStorage.get(id);
+        return filmsStorage.get(id);
     }
 
     @Override
@@ -62,8 +60,5 @@ public class InMemoryFilmStorage implements FilmStorage {
         return null;
     }
 
-    public HashMap<Integer, Film> getFilmsStorage() {
-        return filmsStorage;
-    }
 }
 

@@ -1,11 +1,11 @@
 package ru.yandex.practicum.filmorate.controller;
 
 import lombok.RequiredArgsConstructor;
-import ru.yandex.practicum.filmorate.model.Film;
 import org.springframework.web.bind.annotation.*;
+import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.service.FilmService;
 import ru.yandex.practicum.filmorate.storrage.film.FilmDbStorage;
-import ru.yandex.practicum.filmorate.storrage.film.FilmStorage;
+
 
 import javax.validation.Valid;
 import java.util.Collection;
@@ -16,7 +16,6 @@ import java.util.List;
 @RequestMapping("/films")
 
 public class FilmController {
-    private final FilmStorage filmStorage;
     private final FilmService filmService;
 
     private final FilmDbStorage filmDbStorage;
@@ -37,7 +36,7 @@ public class FilmController {
     }
 
     @GetMapping("/{id}")
-    public Collection<Film> getFilmById(@PathVariable("id") Integer id) {
+    public Film getFilmById(@PathVariable("id") Integer id) {
         return filmDbStorage.getFilmById(id); /* + */
     }
 

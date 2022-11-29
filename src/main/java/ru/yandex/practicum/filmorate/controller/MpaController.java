@@ -22,7 +22,7 @@ public class MpaController {
     }
 
     @GetMapping("/{id}")
-    public Collection<Mpa> getGenreById(@PathVariable("id") Integer id) {
+    public Mpa getGenreById(@PathVariable("id") Integer id) {
         return mpaDbStorage.getMpaById(id);
     }
 

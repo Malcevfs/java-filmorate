@@ -3,10 +3,9 @@ package ru.yandex.practicum.filmorate.service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.exception.StorageException;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.storrage.user.InMemoryUserStorage;
 import ru.yandex.practicum.filmorate.storrage.user.UserDbStorage;
-
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -15,53 +14,57 @@ import java.util.List;
 
 @Service
 public class UserService {
-    InMemoryUserStorage inMemoryUserStorage;
     private final JdbcTemplate jdbcTemplate;
-
     private final UserDbStorage userDbStorage;
 
     @Autowired
-    public UserService(InMemoryUserStorage inMemoryUserStorage, JdbcTemplate jdbcTemplate, UserDbStorage userDbStorage) {
-        this.inMemoryUserStorage = inMemoryUserStorage;
+    public UserService(JdbcTemplate jdbcTemplate, UserDbStorage userDbStorage) {
         this.jdbcTemplate = jdbcTemplate;
         this.userDbStorage = userDbStorage;
     }
 
     public void addFriend(int id, int friendId) {
-//        if (inMemoryUserStorage.getUsersStorage().get(id) == null || inMemoryUserStorage.getUsersStorage().get(friendId) == null) {
-//            throw new StorageException("Не удалось добавить друга. Ошибка поиска пользователя");
-//        }
-
-        String sql = "INSERT INTO friends_request(user_id, friend_id, request) VALUES ('" + id + "'" + "," + "'" + friendId + "'" + ", false)";
+        if (userDbStorage.getUserById(id) == null || userDbStorage.getUserById(friendId) == null) {
+            throw new StorageException("Не удалось поставить лайк. Ошибка поиска пользователя");
+        }
+        if (id < 0 || friendId < 0) {
+            throw new StorageException("Значение Id не может быть отрицательным");
+        }
+        String sql = String.format("INSERT INTO friends_request(user_id, friend_id, request) " +
+                "VALUES ('%d','%d', false)", id, friendId);
         jdbcTemplate.update(sql);
 
         boolean request = checkFriendRequest(id, friendId);
 
         if (request) {
-            String sql1 = "update friends_request set " +
-                    "user_id =" + id + "," +
-                    "friend_id =" + friendId + "," +
-                    "request =" + true;
+            String sql1 = String.format("update friends_request " +
+                    "set user_id =%d,friend_id =%d,request =%s", id, friendId, true);
 
             jdbcTemplate.update(sql1);
-            String sql2 = "update friends_request set " +
-                    "user_id =" + friendId + "," +
-                    "friend_id =" + id + "," +
-                    "request =" + true;
+            String sql2 = String.format("update friends_request " +
+                    "set user_id =%d,friend_id =%d,request =%s", friendId, id, true);
 
             jdbcTemplate.update(sql2);
         }
     }
 
     public boolean checkFriendRequest(int userId, int friendId) {
+
+        if (userId < 0 || friendId < 0) {
+            throw new StorageException("Значение Id не может быть отрицательным");
+        }
+
         boolean request = false;
-        String getUserRequest = " select REQUEST from FRIENDS_REQUEST where USER_ID =" + userId + " and FRIEND_ID =" + friendId;
+        String getUserRequest = String.format(" select REQUEST from FRIENDS_REQUEST " +
+                "where USER_ID =%d and FRIEND_ID =%d", userId, friendId);
         List<Boolean> userRequest = jdbcTemplate.query(getUserRequest, (rs, rowNum) -> getFriendRequest(rs));
 
-        String getFriendRequest = " select REQUEST from FRIENDS_REQUEST where USER_ID =" + friendId + " and FRIEND_ID =" + userId;
+        String getFriendRequest = String.format(" select REQUEST from FRIENDS_REQUEST " +
+                "where USER_ID =%d and FRIEND_ID =%d", friendId, userId);
         List<Boolean> friendRequest = jdbcTemplate.query(getFriendRequest, (rs, rowNum) -> getFriendRequest(rs));
         if (friendRequest.isEmpty()) {
-            request = false;
+           return false;
+
         } else if (userRequest.get(0) == friendRequest.get(0)) {
             request = true;
         }
@@ -69,57 +72,63 @@ public class UserService {
     }
 
     private Boolean getFriendRequest(ResultSet rs) throws SQLException {
-        Boolean request = rs.getBoolean("request");
 
-        return request;
+        return rs.getBoolean("request");
     }
 
     public void deleteFriend(int id, int friendId) {
-//        if (inMemoryUserStorage.getUsersStorage().get(id) == null || inMemoryUserStorage.getUsersStorage().get(friendId) == null) {
-//            throw new StorageException("Не удалось удалить друга. Ошибка поиска пользователя");
-//        }
-        String sql = "DELETE FROM FRIENDS_REQUEST " +
-                "WHERE USER_ID =" + id +
-                "AND FRIEND_ID =" + friendId;
+        if (userDbStorage.getUserById(id) == null || userDbStorage.getUserById(friendId) == null) {
+            throw new StorageException("Не удалось удалить друга. Ошибка поиска пользователя");
+        }
+        if (id < 0 || friendId < 0) {
+            throw new StorageException("Значение Id не может быть отрицательным");
+        }
+        String sql = String.format("DELETE FROM FRIENDS_REQUEST " +
+                "WHERE USER_ID =%dAND FRIEND_ID =%d", id, friendId);
         jdbcTemplate.update(sql);
     }
 
     public List<User> getAllFriends(int id) {
-//        if (inMemoryUserStorage.getUsersStorage().get(id) == null) {
-//            throw new StorageException("Не удалост показать друзей. Ошибка поиска пользователя");
-//        }
+        if (userDbStorage.getUserById(id) == null) {
+            throw new StorageException("Не удалось показать список друзей. Ошибка поиска пользователя");
+        }
         List<User> friends = new ArrayList<>();
 
-        for (Long friendsId : userDbStorage.getUserById(id).get(0).getFriends()) {
-            Integer newId = Math.toIntExact(friendsId);
-            friends.add(userDbStorage.getUserById(newId).get(0));
+        for (Long friendsId : userDbStorage.getUserById(id).getFriends()) {
+            int newId = Math.toIntExact(friendsId);
+            friends.add(userDbStorage.getUserById(newId));
         }
         return friends;
     }
 
     public List<User> getOtherFriends(int id, int otherId) {
+
+        if (id < 0 || otherId < 0) {
+            throw new StorageException("Значение Id не может быть отрицательным");
+        }
         List<User> friends = new ArrayList<>();
-        ArrayList<Long> list1 = new ArrayList<>();
-        ArrayList<Long> list2 = new ArrayList<>();
         ArrayList<Long> list3 = new ArrayList<>();
 
-        for (User user : userDbStorage.getUserById(id)) {
-            list1.addAll(user.getFriends());
-        }
-        for (User user : userDbStorage.getUserById(otherId)) {
-            list2.addAll(user.getFriends());
+        if (userDbStorage.checkUserId(id) || userDbStorage.checkUserId(otherId)) {
+            return friends;
         }
 
-        for (int i = 0; i < list1.size(); i++) {
-            for (int j = 0; j < list1.size(); j++) {
-                if (list1.get(i).equals(list2.get(j))) {
-                    list3.add(list2.get(j));
+        ArrayList<Long> list1 = new ArrayList<>(userDbStorage.getUserById(id).getFriends());
+        ArrayList<Long> list2 = new ArrayList<>(userDbStorage.getUserById(otherId).getFriends());
+
+        if (list2.isEmpty()) {
+            return friends;
+        }
+        for (Long aLong : list1) {
+            for (Long value : list2) {
+                if (aLong.equals(value)) {
+                    list3.add(value);
                 }
             }
         }
         for (Long friendsId : list3) {
             int newId = Math.toIntExact(friendsId);
-            friends.addAll(userDbStorage.getUserById(newId));
+            friends.add(userDbStorage.getUserById(newId));
         }
         return friends;
     }

@@ -36,7 +36,7 @@ public class UserController {
     }
 
     @GetMapping("/{id}")
-    public Collection<User> getFilmById(@PathVariable("id") Integer id) {
+    public User getUserById(@PathVariable("id") Integer id) {
         return userDbStorage.getUserById(id);
     }
 
