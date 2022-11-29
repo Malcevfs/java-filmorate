@@ -1,9 +1,9 @@
 DELETE FROM users;
 ALTER TABLE users ALTER COLUMN user_id RESTART WITH 1;
-
-INSERT INTO users (email,login,name,birthday) VALUES ('1@ya.ru','nikolas1990','Nicolas Cane','1990-10-01');
-INSERT INTO users (email,login,name,birthday) VALUES ('rufus1550@mail.ru','AliansThere','Rufus Gonzales','1985-12-12');
-INSERT INTO users (email,login,name,birthday) VALUES ('kitty@gmail.com','SweetLady','Sofi Luca','2001-01-07');
+--
+-- INSERT INTO users (email,login,name,birthday) VALUES ('1@ya.ru','nikolas1990','Nicolas Cane','1990-10-01');
+-- INSERT INTO users (email,login,name,birthday) VALUES ('rufus1550@mail.ru','AliansThere','Rufus Gonzales','1985-12-12');
+-- INSERT INTO users (email,login,name,birthday) VALUES ('kitty@gmail.com','SweetLady','Sofi Luca','2001-01-07');
 
 DELETE FROM friends_request;
 
@@ -24,10 +24,10 @@ INSERT INTO mpa (name) VALUES ('NC-17');
 
 DELETE FROM films;
 ALTER TABLE films ALTER COLUMN film_id RESTART WITH 1;
-
-INSERT INTO films (name,description,release_date,duration,rate, mpa_id) VALUES ('Dune','dune description','1990-10-01','150','1','1');
-INSERT INTO films (name,description,release_date,duration,rate, mpa_id) VALUES ('Tomb Rider','lara is a beautiful girl','2000-05-12','90','3', '2');
-INSERT INTO films (name,description,release_date,duration,rate, mpa_id) VALUES ('Star Wars','tuuu -du - tu du du du du - pam pam pam','1985-07-06','121','4', '3');
+--
+-- INSERT INTO films (name,description,release_date,duration,rate, mpa_id) VALUES ('Dune','dune description','1990-10-01','150','1','1');
+-- INSERT INTO films (name,description,release_date,duration,rate, mpa_id) VALUES ('Tomb Rider','lara is a beautiful girl','2000-05-12','90','3', '2');
+-- INSERT INTO films (name,description,release_date,duration,rate, mpa_id) VALUES ('Star Wars','tuuu -du - tu du du du du - pam pam pam','1985-07-06','121','4', '3');
 
 DELETE FROM genre;
 ALTER TABLE genre ALTER COLUMN genre_id RESTART WITH 1;
@@ -41,9 +41,9 @@ INSERT INTO genre (genre) VALUES ('Боевик');
 
 DELETE FROM film_genre;
 
-INSERT INTO film_genre (film_id, genre_id) VALUES ('1','1');
-INSERT INTO film_genre (film_id, genre_id) VALUES ('2','3');
-INSERT INTO film_genre (film_id, genre_id) VALUES ('3','2');
+-- INSERT INTO film_genre (film_id, genre_id) VALUES ('1','1');
+-- INSERT INTO film_genre (film_id, genre_id) VALUES ('2','3');
+-- INSERT INTO film_genre (film_id, genre_id) VALUES ('3','2');
 
 DELETE FROM likes;
 
