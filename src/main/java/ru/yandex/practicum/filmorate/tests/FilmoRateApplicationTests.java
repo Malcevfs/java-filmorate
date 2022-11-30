@@ -24,7 +24,6 @@ import java.util.Set;
 @SpringBootTest
 @AutoConfigureTestDatabase
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
-
 class FilmoRateApplicationTests {
     private final UserDbStorage userStorage;
     private final FilmDbStorage filmDbStorage;
@@ -102,9 +101,9 @@ class FilmoRateApplicationTests {
     @Test
     @DisplayName("Проверка на взаимность дружбы")
     public void mutualFriendship() {
-        Assertions.assertFalse(userService.checkFriendRequest(1, 3), "Ошибка взаимности дружбы. Ожидалось - false");
+        Assertions.assertFalse(userStorage.checkFriendRequest(1, 3), "Ошибка взаимности дружбы. Ожидалось - false");
         userService.addFriend(3, 1);
-        Assertions.assertFalse(userService.checkFriendRequest(1, 3), "Ошибка взаимности дружбы. Ожидалось - true");
+        Assertions.assertFalse(userStorage.checkFriendRequest(1, 3), "Ошибка взаимности дружбы. Ожидалось - true");
     }
 
     @Test

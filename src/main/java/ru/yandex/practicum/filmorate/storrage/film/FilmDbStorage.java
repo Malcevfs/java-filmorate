@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.storrage.film;
 
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Primary;
@@ -10,23 +11,24 @@ import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.Mpa;
+import ru.yandex.practicum.filmorate.storrage.user.UserDbStorage;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Component
 @Primary
+@RequiredArgsConstructor
 public class FilmDbStorage implements FilmStorage {
     private final JdbcTemplate jdbcTemplate;
+    private final UserDbStorage userDbStorage;
 
     private final Logger log = LoggerFactory.getLogger(FilmDbStorage.class);
-
-    public FilmDbStorage(JdbcTemplate jdbcTemplate) {
-        this.jdbcTemplate = jdbcTemplate;
-    }
 
     @Override
     public Film add(Film film) {
@@ -206,6 +208,33 @@ public class FilmDbStorage implements FilmStorage {
             check = true;
         }
         return !check;
+    }
+
+    public void addLike(int id, int userId) {
+        if (getFilmById(id) == null || userDbStorage.getUserById(id) == null) {
+            throw new StorageException("Не удалось поставить лайк. Ошибка поиска пользователя");
+        }
+        String sql = String.format("INSERT INTO likes(film_id, user_id) VALUES ('%d','%d')", id, userId);
+        jdbcTemplate.update(sql);
+    }
+
+    public void deleteLike(int id, int userId) {
+        if (id < 0 || userId < 0) {
+            throw new StorageException("Значение Id не может быть отрицательным");
+        }
+
+        if (getFilmById(id) == null || userDbStorage.getUserById(id) == null) {
+            throw new StorageException("Не удалось удалить лайк. Ошибка поиска пользователя");
+        }
+        String sql = String.format("DELETE from likes where film_id = %d and user_id =%d", id, userId);
+        jdbcTemplate.update(sql);
+    }
+
+    public List<Film> getTopFilms(int count) {
+        List<Film> filmsList = new ArrayList<>((getAll()));
+
+        return filmsList.stream().sorted(Comparator.comparingInt(film -> film.getLikes().size() * -1))
+                .limit(count).collect(Collectors.toList());
     }
 
 }
