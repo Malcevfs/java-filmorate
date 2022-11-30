@@ -11,6 +11,7 @@ import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.Mpa;
+import ru.yandex.practicum.filmorate.storrage.filmGenre.FilmGenreDbStorage;
 import ru.yandex.practicum.filmorate.storrage.user.UserDbStorage;
 
 import java.sql.ResultSet;
@@ -27,6 +28,7 @@ import java.util.stream.Collectors;
 public class FilmDbStorage implements FilmStorage {
     private final JdbcTemplate jdbcTemplate;
     private final UserDbStorage userDbStorage;
+    private final FilmGenreDbStorage filmGenreDbStorage;
 
     private final Logger log = LoggerFactory.getLogger(FilmDbStorage.class);
 
@@ -63,12 +65,9 @@ public class FilmDbStorage implements FilmStorage {
 
         if (genres.isEmpty()) {
             for (Genre genre : film.getGenres()) {
-                String sql4 = "INSERT INTO film_genre (film_id, genre_id)" +
-                        " VALUES ('" + film.getId() + "'" + "," + "'" + genre.getId() + "')";
-                jdbcTemplate.update(sql4);
+                filmGenreDbStorage.add(film.getId(), genre.getId());
             }
         }
-
         film.getMpa().setName(mpa.get(0));
         log.info("Фильм с id " + film.getId() + " добавлен в хранилище");
         return film;
@@ -91,14 +90,10 @@ public class FilmDbStorage implements FilmStorage {
 
         jdbcTemplate.update(sql);
 
-        String sql1 = "DELETE FROM film_genre where FILM_ID =" + film.getId();
-        jdbcTemplate.update(sql1);
+        filmGenreDbStorage.delete(film.getId());
 
         for (Genre genre : film.getGenres()) {
-            String sql2 = "INSERT INTO film_genre (film_id, genre_id) " +
-                    "VALUES ('" + film.getId() + "'" + "," + "'" + genre.getId() + "')";
-
-            jdbcTemplate.update(sql2);
+            filmGenreDbStorage.add(film.getId(), genre.getId());
         }
         log.info("Фильм " + film.getName() + " с id " + film.getId() + " обновлен в хранилище");
         return getFilmById(film.getId());
