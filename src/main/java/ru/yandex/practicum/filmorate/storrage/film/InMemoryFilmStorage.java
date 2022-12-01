@@ -6,9 +6,9 @@ import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.StorageException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
-
 import java.time.LocalDate;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
 
 @Component
 public class InMemoryFilmStorage implements FilmStorage {
@@ -56,11 +56,9 @@ public class InMemoryFilmStorage implements FilmStorage {
     }
 
     @Override
-    public Collection<Film> getAll() {
-        return filmsStorage.values();
+    public List<Film> getAll() {
+        return null;
     }
-    public HashMap<Integer, Film> getFilmsStorage() {
-        return filmsStorage;
-    }
+
 }
 

@@ -1,11 +1,11 @@
 package ru.yandex.practicum.filmorate.storrage.user;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.StorageException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -64,7 +64,7 @@ public class InMemoryUserStorage implements UserStorage {
         if (usersStorage.get(id) == null) {
             throw new StorageException("Пользователя с таким Id нет в хранилище");
         }
-        return usersStorage.get(id);
+        return (User) usersStorage.get(id);
     }
 
 }

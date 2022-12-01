@@ -1,13 +1,13 @@
 package ru.yandex.practicum.filmorate.model;
 
 import lombok.Data;
-import lombok.NonNull;
 
-import javax.validation.constraints.*;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Positive;
+import javax.validation.constraints.Size;
 import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.Comparator;
 
 @Data
 public class Film {
@@ -27,5 +27,8 @@ public class Film {
     @Positive(message = "duration is negative")
     protected int duration;
     protected Set<Long> likes = new HashSet<>();
+    protected Set<Genre> genres = new HashSet<>();
+    protected long rate;
+    protected Mpa mpa;
 
 }
